@@ -1,27 +1,41 @@
 import { FC } from "react";
 import { Typography, Button, Box } from "@mui/material";
+import { wordList } from "../utils/words";
 
 interface ResultsProps {
   typedText: string;
-  sampleText: string;
+  startTime: number; // Test başlanyn wagt
+  endTime: number; // Test tamamlanýan wagt
   onRestart: () => void;
 }
 
-const Results: FC<ResultsProps> = ({ typedText, sampleText, onRestart }) => {
+const Results: FC<ResultsProps> = ({
+  typedText,
+  startTime,
+  endTime,
+  onRestart,
+}) => {
   // Подсчет слов в минуту (WPM)
   const calculateWPM = () => {
     const wordsTyped = typedText.trim().split(/\s+/).length;
-    return wordsTyped; // За минуту
+
+    // Вычисляем количество секунд, прошедших с начала теста
+    const timeInSeconds = (endTime - startTime) / 1000;
+
+    // Переводим в минуты
+    const timeInMinutes = timeInSeconds / 60;
+
+    // Возвращаем WPM (слов в минуту)
+    return Math.round(wordsTyped / timeInMinutes);
   };
 
   // Подсчет точности
   const calculateAccuracy = () => {
-    const sampleWords = sampleText.trim().split(/\s+/);
     const typedWords = typedText.trim().split(/\s+/);
     const correctWords = typedWords.filter(
-      (word, index) => word === sampleWords[index]
+      (word, index) => word === wordList[index]
     ).length;
-    return Math.round((correctWords / sampleWords.length) * 100);
+    return Math.round((correctWords / wordList.length) * 100);
   };
 
   return (

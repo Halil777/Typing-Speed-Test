@@ -4,9 +4,6 @@ import Test from "../pages/Test";
 import Results from "../pages/Results";
 import Header from "../components/Header";
 
-const sampleText =
-  "This is a typing speed test. Type the text as quickly and accurately as you can.";
-
 const App = () => {
   const [currentSection, setCurrentSection] = useState<
     "home" | "test" | "results"
@@ -24,14 +21,12 @@ const App = () => {
               setTypedText(text);
               setCurrentSection("results");
             }}
-            sampleText={sampleText}
           />
         );
       case "results":
         return (
           <Results
             typedText={typedText}
-            sampleText={sampleText}
             onRestart={() => setCurrentSection("home")}
           />
         );

@@ -1,18 +1,20 @@
 import { FC, useState, useEffect } from "react";
 import { Typography, TextField, Button, Box } from "@mui/material";
+import { wordList } from "../utils/words";
 
-const sampleText =
-  "This is a typing speed test. Type the text as quickly and accurately as you can.";
+// Массив слов для теста
 
 interface TestProps {
-  sampleText: string; // Передача текста для теста
-  onComplete: (typedText: string) => void; // Колбэк для передачи результата
+  onComplete: (typedText: string, wordsPerMinute: number) => void; // Колбэк для передачи результата
 }
 
-const Test: FC<TestProps> = ({ sampleText, onComplete }) => {
-  const [inputText, setInputText] = useState("");
+const Test: FC<TestProps> = ({ onComplete }) => {
+  const [inputText, setInputText] = useState(""); // Введённый текст
   const [timeLeft, setTimeLeft] = useState(60); // Таймер на 60 секунд
-  const [isTestActive, setIsTestActive] = useState(true);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0); // Индекс текущего слова
+  const [wordsTyped, setWordsTyped] = useState(0); // Количество правильно набранных слов
+  const [isTestActive, setIsTestActive] = useState(true); // Активность теста
+  const [currentWord, setCurrentWord] = useState(wordList[currentWordIndex]); // Текущее слово
 
   // Таймер обратного отсчета
   useEffect(() => {
@@ -24,10 +26,28 @@ const Test: FC<TestProps> = ({ sampleText, onComplete }) => {
     }
   }, [timeLeft, isTestActive]);
 
+  // Обновление слова по мере завершения
+  useEffect(() => {
+    if (inputText.trim() === currentWord) {
+      // Увеличиваем счетчик правильно набранных слов
+      setWordsTyped((prev) => prev + 1);
+
+      // Обновляем индекс для следующего слова, либо начинаем с первого слова, если дошли до конца списка
+      setCurrentWordIndex((prev) => (prev + 1) % wordList.length);
+
+      // Устанавливаем следующее слово
+      setCurrentWord(wordList[(currentWordIndex + 1) % wordList.length]);
+
+      // Очищаем поле ввода
+      setInputText("");
+    }
+  }, [inputText, currentWord]); // Добавляем currentWord, чтобы обновить слово
+
   // Завершение теста
   const handleComplete = () => {
     setIsTestActive(false);
-    onComplete(inputText.trim()); // Передаем введенный текст в колбэк
+    const wordsPerMinute = Math.floor((wordsTyped / (60 - timeLeft)) * 60); // Рассчитываем WPM
+    onComplete(inputText.trim(), wordsPerMinute); // Передаем результат
   };
 
   return (
@@ -57,11 +77,13 @@ const Test: FC<TestProps> = ({ sampleText, onComplete }) => {
           textAlign: "justify",
         }}
       >
-        {sampleText}
+        Type the words as quickly and accurately as you can.
+      </Typography>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Current word: <strong>{currentWord}</strong>
       </Typography>
       <TextField
         fullWidth
-        multiline
         variant="outlined"
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
@@ -89,6 +111,9 @@ const Test: FC<TestProps> = ({ sampleText, onComplete }) => {
       />
       <Typography variant="h6" color={timeLeft <= 10 ? "error" : "#fff"}>
         Time left: {timeLeft}s
+      </Typography>
+      <Typography variant="h6" sx={{ mt: 2 }}>
+        Words typed: {wordsTyped}
       </Typography>
       <Button
         variant="contained"
